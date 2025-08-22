@@ -1,0 +1,25 @@
+# docker-compose.yaml
+services:
+  app:
+    # Запускаем образ с GHCR
+    image: ghcr.io/${GITHUB_USER}/docker_publish:${IMAGE_TAG}
+
+    # Передаём переменную окружения
+    environment:
+      - RUNTIME_SECRET
+
+    # Подключаем секрет как файл в /run/secrets/
+    secrets:
+      - runtime_secret
+
+    # Опционально: имя контейнера
+    container_name: docker-publish-test
+
+    # Опционально: перезапуск при падении
+    restart: unless-stopped
+
+# Определяем секреты
+secrets:
+  runtime_secret:
+    # Путь к файлу на хосте
+    file: ./secrets/runtime-secret.txt

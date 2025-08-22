@@ -141,3 +141,4 @@ vite.config.ts.timestamp-*
 # secrets
 build-secrets/
 runtime-secrets/
+secrets/
