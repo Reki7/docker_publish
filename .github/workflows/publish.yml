@@ -50,15 +50,29 @@ jobs:
           echo "✅ Version extracted: $VERSION"
           echo "image_version=$VERSION" >> $GITHUB_OUTPUT
 
+      # - name: Determine if this is a git tag
+      #   id: is_tag
+      #   run: |
+      #     if [[ $GITHUB_REF == refs/tags/* ]]; then
+      #       TAG_NAME=$(echo $GITHUB_REF | sed 's|refs/tags/v||;s|refs/tags/||')
+      #       echo "is_tag=true" >> $GITHUB_OUTPUT
+      #       echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+      #     else
+      #       echo "is_tag=false" >> $GITHUB_OUTPUT
+      #     fi
+
       - name: Determine if this is a git tag
         id: is_tag
         run: |
           if [[ $GITHUB_REF == refs/tags/* ]]; then
-            TAG_NAME=$(echo $GITHUB_REF | sed 's|refs/tags/v||;s|refs/tags/||')
+            # Извлекаем только имя тега (например, v1.2.3), без refs/tags/
+            TAG_NAME=$(echo $GITHUB_REF | sed 's|refs/tags/||')
             echo "is_tag=true" >> $GITHUB_OUTPUT
             echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+            echo "✅ Detected tag: $TAG_NAME"
           else
             echo "is_tag=false" >> $GITHUB_OUTPUT
+            echo "➡️  Not a tag push, skipping release"
           fi
 
       - name: Log in to GHCR
@@ -99,11 +113,25 @@ jobs:
           secrets: |
             build_secret=/tmp/secrets/build-secret.txt
 
+      # - name: Create GitHub Release
+      #   if: ${{ steps.is_tag.outputs.is_tag }}
+      #   uses: softprops/action-gh-release@v2
+      #   with:
+      #     tag_name: ${{ github.ref }}
+      #     name: Release ${{ steps.is_tag.outputs.tag_name }}
+      #     body: |
+      #       Published Docker image:
+      #       ```
+      #       ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.pkg_version.outputs.image_version }}
+      #       ```
+      #     draft: false
+      #     prerelease: ${{ contains(steps.is_tag.outputs.tag_name, '-') }}
+
       - name: Create GitHub Release
         if: ${{ steps.is_tag.outputs.is_tag }}
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref }}
+          tag_name: ${{ steps.is_tag.outputs.tag_name }}
           name: Release ${{ steps.is_tag.outputs.tag_name }}
           body: |
             Published Docker image:
