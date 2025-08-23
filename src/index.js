@@ -58,22 +58,22 @@ setInterval(() => {
 // APP_VERSION
 let APP_VERSION = 'unknown';
 // Способ 1: require (если package.json в корне)
-// try {
-//   const packageJson = require('../package.json');
-//   APP_VERSION = packageJson.version;
-// } catch (err) {
-//   console.warn('⚠️ Не удалось загрузить package.json');
-// }
-
-// Или — способ 2: fs + JSON.parse (более гибкий)
 try {
-  const packagePath = path.join(__dirname, '..', 'package.json');
-  const packageBuffer = fs.readFileSync(packagePath);
-  const packageJson = JSON.parse(packageBuffer);
+  const packageJson = require('../package.json');
   APP_VERSION = packageJson.version;
 } catch (err) {
-  console.warn('⚠️ Не удалось прочитать package.json:', err.message);
+  console.warn('⚠️ Не удалось загрузить package.json');
 }
+
+// Или — способ 2: fs + JSON.parse (более гибкий)
+// try {
+//   const packagePath = path.join(__dirname, '.', 'package.json');
+//   const packageBuffer = fs.readFileSync(packagePath);
+//   const packageJson = JSON.parse(packageBuffer);
+//   APP_VERSION = packageJson.version;
+// } catch (err) {
+//   console.warn('⚠️ Не удалось прочитать package.json:', err.message);
+// }
 
 // Устанавливаем версию при старте
 versionInfo.set(
