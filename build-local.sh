@@ -38,6 +38,19 @@ if [[ ! -f "$BUILD_SECRET_FILE" ]]; then
   exit 1
 fi
 
+# === Генерация меток ===
+# Время сборки (RFC 3339)
+CREATED=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+# Git revision (хеш коммита) или unknown
+if git rev-parse --git-dir > /dev/null 2>&1; then
+  REVISION=$(git rev-parse HEAD)
+  echo "🔖 Git revision: $REVISION"
+else
+  REVISION="unknown"
+  echo "🔖 Git revision: not a repo → 'unknown'"
+fi
+
 # Теги
 TAG_VERSION="$IMAGE_NAME:$VERSION"
 TAG_LATEST="$IMAGE_NAME:latest"
@@ -45,6 +58,9 @@ TAG_LATEST="$IMAGE_NAME:latest"
 echo "🎯 Собираем образ:"
 echo "   - $TAG_VERSION"
 echo "   - $TAG_LATEST"
+echo "   - Метки:"
+echo "     • org.opencontainers.image.created=$CREATED"
+echo "     • org.opencontainers.image.revision=$REVISION"
 
 # Включаем BuildKit
 export DOCKER_BUILDKIT=1
@@ -56,6 +72,14 @@ docker build \
   --secret id=build_secret,src="$BUILD_SECRET_FILE" \
   --tag "$TAG_VERSION" \
   --tag "$TAG_LATEST" \
+  --label "org.opencontainers.image.created=$CREATED" \
+  --label "org.opencontainers.image.revision=$REVISION" \
+  # --label "org.opencontainers.image.version=$VERSION" \
+  # --label "org.opencontainers.image.title=My Node App" \
+  # --label "org.opencontainers.image.description=Test app for Docker secrets and GHCR publishing" \
+  # --label "org.opencontainers.image.source=https://github.com/${GITHUB_USER}/my-node-app" \
+  # --label "org.opencontainers.image.licenses=MIT" \
+  # --label "org.opencontainers.image.vendor=Your Name" \  
   .
 
 echo "✅ Сборка завершена!"
@@ -63,5 +87,22 @@ echo "   Доступные образы:"
 echo "   - $TAG_VERSION"
 echo "   - $TAG_LATEST"
 
+# Показать метки (опционально)
+echo "🔍 Проверка меток:"
+docker inspect "$TAG_VERSION" --format '{{ json .Config.Labels }}' | jq .
+
 # Опционально: показать последние образы
-docker image ls "ghcr.io/${GITHUB_USER}/my-node-app" | head -5
+# docker image ls "ghcr.io/${GITHUB_USER}/my-node-app" | head -5
+
+
+# echo "📤 Публикуем на GHCR..."
+# Перед запуском: export CR_PAT=your_github_personal_access_token
+
+# echo "Логин в ghcr.io..."
+# echo "$CR_PAT" | docker login ghcr.io -u "$GITHUB_USER" --password-stdin
+
+# echo "Пушим образы..."
+# docker push "$TAG_VERSION"
+# docker push "$TAG_LATEST"
+
+# echo "✅ Образы опубликованы на GHCR"

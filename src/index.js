@@ -15,6 +15,14 @@ const uptimeGauge = new client.Gauge({
   help: 'Application uptime in seconds',
   registers: [register],
 });
+// Встроенная метрика: uptime процесса
+new client.Gauge({
+  name: 'process_uptime_seconds',
+  help: 'Process uptime in seconds',
+  collect() {
+    this.set(process.uptime());
+  }
+});
 
 // Версия приложения
 const versionInfo = new client.Gauge({
@@ -59,7 +67,12 @@ let buildSecret = 'not found';
 if (fs.existsSync(buildSecretPath)) {
   buildSecret = fs.readFileSync(buildSecretPath, 'utf8').trim();
 }
-const runtimeSecret = process.env.RUNTIME_SECRET || 'not set';
+const runtimeSecretPath = '/run/secrets/runtime_secret_2';
+let runtimeSecretFile = 'not found';
+if (fs.existsSync(runtimeSecretPath)) {
+  runtimeSecretFile = fs.readFileSync(runtimeSecretPath, 'utf8').trim();
+}
+const runtimeSecretEnv = process.env.RUNTIME_SECRET || 'not set';
 
 // HTTP-сервер
 const server = http.createServer(async (req, res) => {
@@ -90,11 +103,14 @@ const server = http.createServer(async (req, res) => {
     return res.end(
       `===================================\n` +
       `🔧 Build-time secret: ${buildSecret}\n` +
-      `🚀 Runtime secret: ${runtimeSecret}\n` +
+      `🚀 Runtime secret file: ${runtimeSecretFile}\n` +
+      `🚀 Runtime secret env: ${runtimeSecretEnv}\n` +
       `📊 Uptime: ${formatUptime(Date.now() - startTime)}\n` +
       `🌍 Server is running on port 3000\n` +
       `📈 Metrics: http://localhost:3000/metrics\n` +
       `✅ Health: http://localhost:3000/health\n` +
+      `Grafana: http://localhost:3001\n` +
+      `Prometheus: http://localhost:9090\n` +
       `===================================\n`
     );
   }

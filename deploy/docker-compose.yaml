@@ -16,13 +16,14 @@ services:
       - monitoring
     # Переменные окружения
     environment:
-      - RUNTIME_SECRET
+      - RUNTIME_SECRET=${RUNTIME_SECRET}
       - NODE_ENV=${NODE_ENV:-production}
       - APP_VERSION=${IMAGE_TAG}
       - APP_CONFIG_PATH=/app/config/config.json
     # Подключаем секреты
     secrets:
-      - runtime_secret
+      - source: runtime_secret
+        target: /run/secrets/runtime_secret_2
     # Подключаем конфиги
     configs:
       - source: app_config
@@ -38,9 +39,9 @@ services:
     # Перезапуск
     restart: unless-stopped
     # Лейблы (метаданные)
-    labels:
-      - "org.opencontainers.image.source=https://github.com/${GITHUB_USER}/docker_publish"
-      - "org.opencontainers.image.version=${IMAGE_TAG}"
+    # labels:
+    #   - "org.opencontainers.image.source=https://github.com/${GITHUB_USER}/docker_publish"
+    #   - "org.opencontainers.image.version=${IMAGE_TAG}"
 
   # === Prometheus ===
   prometheus:
