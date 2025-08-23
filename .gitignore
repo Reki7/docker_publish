@@ -142,3 +142,4 @@ vite.config.ts.timestamp-*
 build-secrets/
 runtime-secrets/
 secrets/
+config/local-*.json

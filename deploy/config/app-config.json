@@ -1,0 +1,5 @@
+{
+  "appName": "My Node App",
+  "logLevel": "info",
+  "apiTimeout": 5000
+}

@@ -1,25 +1,72 @@
-# docker-compose.yaml
+# version: '3.8'
+# Глобальные опции
+name: docker_publish-stack
+
 services:
   app:
-    # Запускаем образ с GHCR
     image: ghcr.io/${GITHUB_USER}/docker_publish:${IMAGE_TAG}
 
-    # Передаём переменную окружения
+    # Порты: хост:контейнер
+    ports:
+      - "${HOST_PORT:-3000}:3000"
+
+    # Сеть
+    networks:
+      - app-network
+
+    # Переменные окружения
     environment:
       - RUNTIME_SECRET
+      - NODE_ENV=${NODE_ENV:-production}
+      - APP_CONFIG_PATH=/app/config/config.json
 
-    # Подключаем секрет как файл в /run/secrets/
+    # Подключаем секреты
     secrets:
       - runtime_secret
 
-    # Опционально: имя контейнера
+    # Подключаем конфиги
+    configs:
+      - source: app_config
+        target: /app/config/config.json
+        mode: 444  # Только чтение
+
+    # Healthcheck
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s  # Дайте приложению время на старт
+
+    # Перезапуск
+    restart: unless-stopped
+
+    # Имя контейнера
     container_name: docker-publish-test
 
-    # Опционально: перезапуск при падении
-    restart: unless-stopped
+    # Лейблы (метаданные)
+    labels:
+      - "org.opencontainers.image.source=https://github.com/${GITHUB_USER}/my-node-app"
+      - "org.opencontainers.image.version=${IMAGE_TAG}"
+
+# Определяем сети
+networks:
+  app-network:
+    driver: bridge
+
+# Определяем конфиги
+configs:
+  app_config:
+    file: ./config/app-config.json
 
 # Определяем секреты
 secrets:
   runtime_secret:
-    # Путь к файлу на хосте
+    # Используем файл, если он есть
     file: ./secrets/runtime-secret.txt
+    # Если файла нет — Docker попытается создать пустой секрет (но лучше сгенерировать)
+    # Важно: файл должен существовать при запуске
+
+  # Пример: можно добавить TLS-секреты позже
+  # tls_key:
+  #   file: ./secrets/tls.key
