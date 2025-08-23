@@ -84,7 +84,7 @@ volumes:
 
 # Определяем сети
 networks:
-  app-network:
+  monitoring:
     driver: bridge
 
 # Определяем конфиги

@@ -2,8 +2,9 @@ FROM node:22-alpine AS base
 
 FROM base AS builder
 
-COPY package.json /tmp/package.json
-
+COPY package.json /run/package.json
+COPY package-lock.json /run/package-lock.json
+WORKDIR /run
 ARG APP_VERSION=unknown
 ENV APP_VERSION=${APP_VERSION}
 
@@ -15,10 +16,11 @@ LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.vendor="Home Inc"
 LABEL org.opencontainers.image.url="https://ghcr.io/Reki7/docker_publish"
 
-RUN --mount=type=secret,id=build_secret,dst=/run/secrets/build_secret \
-    mkdir -p /build-secrets && \
-    cat /run/secrets/build_secret > /build-secrets/build_secret.txt && \
-    chmod 400 /build-secrets/build_secret.txt
+RUN npm ci
+# RUN --mount=type=secret,id=build_secret,dst=/run/secrets/build_secret \
+#     mkdir -p /build-secrets && \
+#     cat /run/secrets/build_secret > /build-secrets/build_secret.txt && \
+#     chmod 400 /build-secrets/build_secret.txt
 
 FROM base AS runner
 
@@ -34,6 +36,7 @@ LABEL org.opencontainers.image.url="https://ghcr.io/Reki7/docker_publish"
 WORKDIR /app
 COPY src/index.js .
 
-COPY --from=builder /build-secrets/build_secret.txt /run/secrets/build_secret
+# COPY --from=builder /build-secrets/build_secret.txt /run/secrets/build_secret
+COPY --from=builder /run/node_modules /run/node_modules
 
 CMD ["node", "index.js"]
