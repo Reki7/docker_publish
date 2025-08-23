@@ -5,31 +5,29 @@ name: docker_publish-stack
 services:
   app:
     image: ghcr.io/${GITHUB_USER}/docker_publish:${IMAGE_TAG}
-
+    # Имя контейнера
+    container_name: docker-publish-test
     # Порты: хост:контейнер
     ports:
       - "${HOST_PORT:-3000}:3000"
-
     # Сеть
     networks:
-      - app-network
-
+      # - app-network
+      - monitoring
     # Переменные окружения
     environment:
       - RUNTIME_SECRET
       - NODE_ENV=${NODE_ENV:-production}
+      - APP_VERSION=${IMAGE_TAG}
       - APP_CONFIG_PATH=/app/config/config.json
-
     # Подключаем секреты
     secrets:
       - runtime_secret
-
     # Подключаем конфиги
     configs:
       - source: app_config
         target: /app/config/config.json
         mode: 444  # Только чтение
-
     # Healthcheck
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
@@ -37,17 +35,52 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s  # Дайте приложению время на старт
-
     # Перезапуск
     restart: unless-stopped
-
-    # Имя контейнера
-    container_name: docker-publish-test
-
     # Лейблы (метаданные)
     labels:
-      - "org.opencontainers.image.source=https://github.com/${GITHUB_USER}/my-node-app"
+      - "org.opencontainers.image.source=https://github.com/${GITHUB_USER}/docker_publish"
       - "org.opencontainers.image.version=${IMAGE_TAG}"
+
+  # === Prometheus ===
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    restart: unless-stopped
+
+  # === Grafana ===
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    networks:
+      - monitoring
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_FEATURE_TOGGLES_ENABLE=ngalert
+    restart: unless-stopped
+
+volumes:
+  prometheus_data:
+  grafana_data:
 
 # Определяем сети
 networks:
