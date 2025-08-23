@@ -98,7 +98,7 @@ jobs:
           tags: |
             type=raw,value=${{ steps.pkg_version.outputs.image_version }}
             type=raw,value=latest,enable=${{ steps.is_tag.outputs.is_tag }}
-            type=sha,prefix=sha-
+            # type=sha,prefix=sha-
 
       - name: Build and push
         uses: docker/build-push-action@v5

@@ -50,7 +50,7 @@ const server = http.createServer((req, res) => {
 
   if (req.url === '/') {
     res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
-    res.end(
+    return res.end(
       `===================================\n` +
       `🔧 Build-time secret: ${buildSecret}\n` +
       `🚀 Runtime secret: ${runtimeSecret}\n` +
@@ -61,7 +61,7 @@ const server = http.createServer((req, res) => {
   }
 
   res.writeHead(404);
-  res.end('Not found');
+  return res.end('Not found');
 });
 
 const PORT = 3000;
