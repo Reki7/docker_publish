@@ -79,6 +79,30 @@ services:
       - GF_FEATURE_TOGGLES_ENABLE=ngalert
     restart: unless-stopped
 
+  # === Alertmanager ===
+  alertmanager:
+    image: prom/alertmanager:latest
+    ports:
+      - "9093:9093"
+    networks:
+      - monitoring
+    volumes:
+      - ./alertmanager/alertmanager.tmpl.yml:/etc/alertmanager/alertmanager.tmpl.yml:ro
+      - ./alertmanager/prepare-config.sh:/etc/alertmanager/prepare-config.sh:rw
+    environment:
+      - ALERTMANAGER_TELEGRAM_TOKEN=${ALERTMANAGER_TELEGRAM_TOKEN}
+      - ALERTMANAGER_CHAT_ID=${ALERTMANAGER_CHAT_ID}
+    # 🔥 Сбрасываем ENTRYPOINT и запускаем shell
+    entrypoint: ["/bin/sh"]
+          # chmod +x /etc/alertmanager/prepare-config.sh &&
+    command: >
+      -c '
+      echo "🔧 Запуск скрипта настройки Alertmanager..." &&
+      exec /etc/alertmanager/prepare-config.sh
+      '
+    restart: unless-stopped
+    container_name: alertmanager
+
 volumes:
   prometheus_data:
   grafana_data:

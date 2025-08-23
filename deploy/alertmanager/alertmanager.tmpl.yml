@@ -1,0 +1,28 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: 'telegram'
+  group_by: ['alertname']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 1h
+
+receivers:
+  - name: 'telegram'
+    telegram_configs:
+      - api_url: 'https://api.telegram.org'
+        bot_token: '{{ .TOKEN }}'
+        chat_id: {{ .CHAT_ID }}
+        message: |
+          🚨 *{{ .Status | toUpper }}: {{ .CommonAnnotations.summary }}*
+          {{ range .Alerts }}
+          *График:* {{ .Labels.alertname }}
+          *Сервис:* {{ .Labels.service }}
+          *Значение:* {{ .Value }}
+          *Время:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+        parse_mode: 'Markdown'
+
+templates:
+  - '/etc/alertmanager/template/*.tmpl'

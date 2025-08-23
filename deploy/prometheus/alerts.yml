@@ -1,0 +1,32 @@
+groups:
+  - name: nodejs-app.rules
+    rules:
+      - alert: HighEventLoopLag
+        expr: nodejs_eventloop_lag_seconds > 0.1
+        for: 30s
+        labels:
+          severity: warning
+          service: nodejs-app
+        annotations:
+          summary: "Высокая задержка event loop ({{ $value }}s)"
+          description: "Задержка event loop превысила 100ms на протяжении 30 секунд."
+
+      - alert: AppDown
+        expr: up{job="node-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: nodejs-app
+        annotations:
+          summary: "Приложение недоступно"
+          description: "Эндпоинт /metrics не отвечает более 1 минуты."
+
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes / process_virtual_memory_bytes > 0.8
+        for: 2m
+        labels:
+          severity: warning
+          service: nodejs-app
+        annotations:
+          summary: "Высокое потребление памяти ({{ $value | printf \"%.2f\" }})"
+          description: "Процесс использует более 80% выделенной памяти."
