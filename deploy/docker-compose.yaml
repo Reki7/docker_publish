@@ -18,7 +18,7 @@ services:
     environment:
       - RUNTIME_SECRET=${RUNTIME_SECRET}
       - NODE_ENV=${NODE_ENV:-production}
-      - APP_VERSION=${IMAGE_TAG}
+      - IMG_VERSION=${IMAGE_TAG}
       - APP_CONFIG_PATH=/app/config/config.json
     # Подключаем секреты
     secrets:

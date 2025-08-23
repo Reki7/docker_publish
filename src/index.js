@@ -55,6 +55,26 @@ setInterval(() => {
   uptimeGauge.set(uptimeSec);
 }, 1000);
 
+// APP_VERSION
+let APP_VERSION = 'unknown';
+// Способ 1: require (если package.json в корне)
+// try {
+//   const packageJson = require('../package.json');
+//   APP_VERSION = packageJson.version;
+// } catch (err) {
+//   console.warn('⚠️ Не удалось загрузить package.json');
+// }
+
+// Или — способ 2: fs + JSON.parse (более гибкий)
+try {
+  const packagePath = path.join(__dirname, '..', 'package.json');
+  const packageBuffer = fs.readFileSync(packagePath);
+  const packageJson = JSON.parse(packageBuffer);
+  APP_VERSION = packageJson.version;
+} catch (err) {
+  console.warn('⚠️ Не удалось прочитать package.json:', err.message);
+}
+
 // Устанавливаем версию при старте
 versionInfo.set(
   { version: process.env.APP_VERSION || 'unknown', node_env: process.env.NODE_ENV || 'unknown' },
@@ -90,7 +110,7 @@ const server = http.createServer(async (req, res) => {
       uptime: formatUptime(uptimeMs),
       timestamp: new Date().toISOString(),
       hostname: os.hostname(),
-      version: process.env.APP_VERSION || 'unknown',
+      img_version: process.env.IMG_VERSION || 'unknown',
       node_env: process.env.NODE_ENV || 'unknown',
     };
 
@@ -105,6 +125,8 @@ const server = http.createServer(async (req, res) => {
       `🔧 Build-time secret: ${buildSecret}\n` +
       `🚀 Runtime secret file: ${runtimeSecretFile}\n` +
       `🚀 Runtime secret env: ${runtimeSecretEnv}\n` +
+      `📦 Version: ${APP_VERSION}\n` +
+      `🖼 Image version: ${process.env.IMG_VERSION || "unknown"}\n` +
       `📊 Uptime: ${formatUptime(Date.now() - startTime)}\n` +
       `🌍 Server is running on port 3000\n` +
       `📈 Metrics: http://localhost:3000/metrics\n` +
