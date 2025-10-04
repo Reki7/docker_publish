@@ -27,13 +27,13 @@ sed \
 echo "✅ Конфиг сгенерирован: $CONFIG_OUT"
 
 # Проверка синтаксиса конфига (опционально)
-# echo "🔧 Проверка конфига Alertmanager..."
-# if /bin/alertmanager --config.validate-files --config.file="$CONFIG_OUT" > /dev/null 2>&1; then
-#   echo "✅ Конфиг корректен"
-# else
-#   echo "❌ Ошибка: конфиг Alertmanager некорректен" >&2
-#   exit 1
-# fi
+echo "🔧 Проверка конфига Alertmanager..."
+if /bin/alertmanager --config.validate-files --config.file="$CONFIG_OUT" > /dev/null 2>&1; then
+  echo "✅ Конфиг корректен"
+else
+  echo "❌ Ошибка: конфиг Alertmanager некорректен" >&2
+  exit 1
+fi
 
 echo "✅ Конфиг готов"
 
