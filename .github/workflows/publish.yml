@@ -67,9 +67,13 @@ jobs:
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             # Извлекаем только имя тега (например, v1.2.3), без refs/tags/
             TAG_NAME=$(echo $GITHUB_REF | sed 's|refs/tags/||')
+            # Удаляем префикс "v" из имени тега для использования в Docker
+            TAG_NAME_STRIPPED=$(echo $TAG_NAME | sed 's/^v//')
             echo "is_tag=true" >> $GITHUB_OUTPUT
             echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+            echo "tag_name_stripped=$TAG_NAME_STRIPPED" >> $GITHUB_OUTPUT
             echo "✅ Detected tag: $TAG_NAME"
+            echo "✅ Stripped tag: $TAG_NAME_STRIPPED"
           else
             echo "is_tag=false" >> $GITHUB_OUTPUT
             echo "➡️  Not a tag push, skipping release"
@@ -100,24 +104,25 @@ jobs:
             type=raw,value=latest,enable=${{ steps.is_tag.outputs.is_tag }}
             # type=sha,prefix=sha-
 
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            APP_VERSION=${{ steps.pkg_version.outputs.image_version }}
-          secrets: |
-            build_secret=/tmp/secrets/build-secret.txt
+      # - name: Build and push
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     context: .
+      #     file: Dockerfile
+      #     push: true
+      #     tags: ${{ steps.meta.outputs.tags }}
+      #     labels: ${{ steps.meta.outputs.labels }}
+      #     build-args: |
+      #       APP_VERSION=${{ steps.pkg_version.outputs.image_version }}
+      #     secrets: |
+      #       build_secret=/tmp/secrets/build-secret.txt
 
       # - name: Create GitHub Release
       #   if: ${{ steps.is_tag.outputs.is_tag }}
       #   uses: softprops/action-gh-release@v2
       #   with:
-      #     tag_name: ${{ github.ref }}
+      #     # tag_name: ${{ github.ref }}
+      #     tag_name: ${{ steps.is_tag.outputs.tag_name }}
       #     name: Release ${{ steps.is_tag.outputs.tag_name }}
       #     body: |
       #       Published Docker image:
@@ -126,17 +131,3 @@ jobs:
       #       ```
       #     draft: false
       #     prerelease: ${{ contains(steps.is_tag.outputs.tag_name, '-') }}
-
-      - name: Create GitHub Release
-        if: ${{ steps.is_tag.outputs.is_tag }}
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.is_tag.outputs.tag_name }}
-          name: Release ${{ steps.is_tag.outputs.tag_name }}
-          body: |
-            Published Docker image:
-            ```
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.pkg_version.outputs.image_version }}
-            ```
-          draft: false
-          prerelease: ${{ contains(steps.is_tag.outputs.tag_name, '-') }}
