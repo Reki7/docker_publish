@@ -8,7 +8,7 @@ RUN npm ci
 # Копируем секрет на стадии сборки (доступен только во время build)
 RUN --mount=type=secret,id=build_secret,dst=/run/secrets/build_secret \
     echo "Build secret was processed during image build" && \
-    echo "Secret length: $(cat /run/secrets/build_secret | wc -c)" \
+    echo "Secret length: $(cat /run/secrets/build_secret | wc -c)" && \
     cat /run/secrets/build_secret > /build-secret-from-file.txt
 # Можно также передать секрет как переменную среды на стадии сборки (опционально)
 # RUN --mount=type=secret,id=build_secret \

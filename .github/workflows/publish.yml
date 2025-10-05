@@ -4,7 +4,7 @@ on:
   push:
     # branches: [ "build_image" ]
     tags:
-      - "v*"
+      - "v[0-9]+.[0-9]+.[0-9]+"
   workflow_dispatch:
 
 env:
@@ -28,27 +28,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate package.json and extract version
-        id: pkg_version
-        run: |
-          if [[ ! -f package.json ]]; then
-            echo "❌ package.json not found"
-            exit 1
-          fi
+      # - name: Validate package.json and extract version
+      #   id: pkg_version
+      #   run: |
+      #     if [[ ! -f package.json ]]; then
+      #       echo "❌ package.json not found"
+      #       exit 1
+      #     fi
 
-          VERSION=$(jq -r .version package.json)
-          if [[ -z "$VERSION" || "$VERSION" == "null" ]]; then
-            echo "❌ Failed to extract version from package.json"
-            exit 1
-          fi
+      #     VERSION=$(jq -r .version package.json)
+      #     if [[ -z "$VERSION" || "$VERSION" == "null" ]]; then
+      #       echo "❌ Failed to extract version from package.json"
+      #       exit 1
+      #     fi
 
-          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-.+)?$'; then
-            echo "❌ Version '$VERSION' is not a valid semver (e.g. 1.2.3)"
-            exit 1
-          fi
+      #     if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-.+)?$'; then
+      #       echo "❌ Version '$VERSION' is not a valid semver (e.g. 1.2.3)"
+      #       exit 1
+      #     fi
 
-          echo "✅ Version extracted: $VERSION"
-          echo "image_version=$VERSION" >> $GITHUB_OUTPUT
+      #     echo "✅ Version extracted: $VERSION"
+      #     echo "image_version=$VERSION" >> $GITHUB_OUTPUT
 
       # - name: Determine if this is a git tag
       #   id: is_tag
@@ -119,17 +119,17 @@ jobs:
           secrets: |
             build_secret=/tmp/secrets/build-secret.txt
 
-      - name: Create GitHub Release
-        if: ${{ steps.is_tag.outputs.is_tag }}
-        uses: softprops/action-gh-release@v2
-        with:
-          # tag_name: ${{ github.ref }}
-          tag_name: ${{ steps.is_tag.outputs.tag_name }}
-          name: Release v${{ steps.is_tag.outputs.tag_name }}
-          body: |
-            Published Docker image:
-            ```
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.is_tag.outputs.tag_name }}
-            ```
-          draft: false
-          prerelease: ${{ contains(steps.is_tag.outputs.tag_name, '-') }}
+      # - name: Create GitHub Release
+      #   if: ${{ steps.is_tag.outputs.is_tag }}
+      #   uses: softprops/action-gh-release@v2
+      #   with:
+      #     # tag_name: ${{ github.ref }}
+      #     tag_name: ${{ steps.is_tag.outputs.tag_name }}
+      #     name: Release v${{ steps.is_tag.outputs.tag_name }}
+      #     body: |
+      #       Published Docker image:
+      #       ```
+      #       ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.is_tag.outputs.tag_name }}
+      #       ```
+      #     draft: false
+      #     prerelease: ${{ contains(steps.is_tag.outputs.tag_name, '-') }}
