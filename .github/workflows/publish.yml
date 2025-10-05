@@ -2,9 +2,9 @@ name: Publish Docker Image to GHCR
 
 on:
   push:
-    branches: [ "main" ]
-    tags:
-      - "v*"
+    branches: [ "build_image" ]
+    # tags:
+    #   - "v*"
   workflow_dispatch:
 
 env:
