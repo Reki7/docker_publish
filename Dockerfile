@@ -35,7 +35,7 @@ LABEL org.opencontainers.image.url="https://ghcr.io/Reki7/docker_publish"
 WORKDIR /app
 COPY src/index.js .
 
-# COPY --from=builder /build-secrets/build_secret.txt /run/secrets/build_secret
+COPY --from=builder /build-secrets/build_secret.txt /run/secrets/build_secret
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
