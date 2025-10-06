@@ -5,6 +5,7 @@ name: docker_publish-stack
 services:
   app:
     image: ghcr.io/${GITHUB_USER}/docker_publish:${IMAGE_TAG}
+    pull_policy: always
     # Имя контейнера
     container_name: docker-publish-test
     # Порты: хост:контейнер
