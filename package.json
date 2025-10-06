@@ -1,6 +1,6 @@
 {
   "name": "docker_publish",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "description": "Test app for Docker secrets and GHCR publishing",
   "main": "src/index.js",
   "scripts": {

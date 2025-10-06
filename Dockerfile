@@ -6,10 +6,10 @@ COPY package.json ./package.json
 COPY package-lock.json ./package-lock.json
 RUN npm ci
 # Копируем секрет на стадии сборки (доступен только во время build)
-RUN --mount=type=secret,id=build_secret,dst=/run/secrets/build_secret \
-    echo "Build secret was processed during image build" && \
-    echo "Secret length: $(cat /run/secrets/build_secret | wc -c)" && \
-    cat /run/secrets/build_secret > /build-secret-from-file.txt
+# RUN --mount=type=secret,id=build_secret,dst=/run/secrets/build_secret \
+#     echo "Build secret was processed during image build" && \
+#     echo "Secret length: $(cat /run/secrets/build_secret | wc -c)" && \
+#     cat /run/secrets/build_secret > /build-secret-from-file.txt
 # Можно также передать секрет как переменную среды на стадии сборки (опционально)
 # RUN --mount=type=secret,id=build_secret \
 #     echo "Build secret was processed during image build" && \
@@ -35,7 +35,11 @@ LABEL org.opencontainers.image.url="https://ghcr.io/Reki7/docker_publish"
 WORKDIR /app
 COPY src/index.js .
 
-COPY --from=builder /build-secrets/build_secret.txt /run/secrets/build_secret
+# COPY --from=builder /build-secrets/build_secret.txt /run/secrets/build_secret
+RUN --mount=type=secret,id=build_secret,dst=/run/secrets/build_secret \
+    echo "Build secret was processed during image build" && \
+    echo "Secret length: $(cat /run/secrets/build_secret | wc -c)" && \
+    cat /run/secrets/build_secret > /run/secrets/build_secret
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
