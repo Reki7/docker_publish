@@ -20,7 +20,7 @@ jobs:
       id-token: write
 
     outputs:
-      version: ${{ steps.pkg_version.outputs.image_version }}
+      # version: ${{ steps.pkg_version.outputs.image_version }}
       create_release: ${{ steps.is_tag.outputs.is_tag }}
       release_version: ${{ steps.is_tag.outputs.tag_name }}
 
