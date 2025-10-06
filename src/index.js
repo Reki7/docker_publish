@@ -84,7 +84,7 @@ versionInfo.set(
 );
 
 // Секреты
-const buildSecretPath = '/run/secrets/build_secret';
+const buildSecretPath = './build_secret';
 let buildSecret = 'not found';
 if (fs.existsSync(buildSecretPath)) {
   buildSecret = fs.readFileSync(buildSecretPath, 'utf8').trim();
