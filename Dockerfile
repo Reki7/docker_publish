@@ -9,6 +9,7 @@ RUN npm ci
 RUN --mount=type=secret,id=build_secret,dst=/run/secrets/build_secret \
     echo "Build secret was processed during image build" && \
     echo "Secret length: $(cat /run/secrets/build_secret | wc -c)" && \
+    # mkdir -p /tmp/secrets && \
     cat /run/secrets/build_secret > /build-secret-from-file.txt
 # Можно также передать секрет как переменную среды на стадии сборки (опционально)
 # RUN --mount=type=secret,id=build_secret \
@@ -37,10 +38,10 @@ COPY src/index.js .
 
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
-# COPY --from=builder /build-secrets/build_secret.txt /run/secrets/build_secret
-RUN --mount=type=secret,id=build_secret,dst=/run/secrets/build_secret \
-    echo "Build secret was processed during image build" && \
-    echo "Secret length: $(cat /run/secrets/build_secret | wc -c)" && \
-    cat /run/secrets/build_secret > ./build_secret
+COPY --from=builder /build-secrets/build_secret.txt ./build_secret
+# RUN --mount=type=secret,id=build_secret,dst=/run/secrets/build_secret \
+#     echo "Build secret was processed during image build" && \
+#     echo "Secret length: $(cat /run/secrets/build_secret | wc -c)" && \
+#     cat /run/secrets/build_secret > ./build_secret
 
 CMD ["node", "index.js"]
